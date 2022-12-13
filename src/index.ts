@@ -57,18 +57,23 @@ const show = (data: any): void => {
   });
 
   // print four items by row
-  console.log(result)
   let count = 0;
   let acc = "";
   result.forEach((item, index) => {
     if (count < 4) {
       acc = !acc ? item.value : `${acc}, ${item.value}`;
       count++;
-      return;
     }
-    if (count === 4) console.log(acc);
-    count = 0;
-    acc = "";
+    if (index === result.length - 1) {
+      console.log(acc)
+      return
+    }
+    if (count === 4) {
+      console.log(acc)
+      acc = '';
+      count = 0;
+      return;
+    };
   });
 };
 
