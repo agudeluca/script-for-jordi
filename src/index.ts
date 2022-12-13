@@ -1,63 +1,82 @@
 /* eslint-disable prefer-const */
 /* eslint-disable arrow-body-style */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import fs from 'fs'
-import util from 'util'
+import fs from "fs";
+import util from "util";
 
-import csv from 'csv-parser'
+import csv from "csv-parser";
 
-import path from 'path'
+import path from "path";
 
-export default function mapCsvHeaders(args: { header: string; index: number }): string | null {
+export default function mapCsvHeaders(args: {
+  header: string;
+  index: number;
+}): string | null {
   switch (args.index) {
     case 0:
-      return 'value'
+      return "value";
     case 1:
-      return 'acc'
+      return "acc";
     default:
-      return null
+      return null;
   }
 }
 
-const CSV_DIRECTORY = path.join(process.cwd(), '/csv')
+const CSV_DIRECTORY = path.join(process.cwd(), "/csv");
 
 export const getCSV = async (): Promise<string[]> => {
-  const readDir = util.promisify(fs.readdir)
-  const directoryFiles = await readDir(CSV_DIRECTORY)
+  const readDir = util.promisify(fs.readdir);
+  const directoryFiles = await readDir(CSV_DIRECTORY);
 
-  return directoryFiles.filter(file => file.endsWith('.csv')).map(fileName => `${CSV_DIRECTORY}/${fileName}`)
-}
+  return directoryFiles
+    .filter((file) => file.endsWith(".csv"))
+    .map((fileName) => `${CSV_DIRECTORY}/${fileName}`);
+};
 
 export const readCSV = async (filePath: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    let data: any = []
+    let data: any = [];
     fs.createReadStream(filePath)
       .pipe(csv({ mapHeaders: mapCsvHeaders }))
-      .on('data', row => data.push(row))
-      .on('end', () => {
-        resolve(data)
+      .on("data", (row) => data.push(row))
+      .on("end", () => {
+        resolve(data);
       })
-      .on('error', err => {
-        reject(err)
-      })
-  })
-}
+      .on("error", (err) => {
+        reject(err);
+      });
+  });
+};
 const show = (data: any): void => {
-  let result: { value: any }[] = []
+  let result: { value: any }[] = [];
   data[0].forEach((item: any) => {
-    const { acc, value } = item
+    const { acc, value } = item;
     for (let index = 0; index < acc; index++) {
-      result.push({ value })
+      result.push({ value });
     }
-  })
-  result.forEach(item => {
-    console.log(item.value)
-  })
-}
+  });
+
+  // print four items by row
+  console.log(result)
+  let count = 0;
+  let acc = "";
+  result.forEach((item, index) => {
+    if (count < 4) {
+      acc = !acc ? item.value : `${acc}, ${item.value}`;
+      count++;
+      return;
+    }
+    if (count === 4) console.log(acc);
+    count = 0;
+    acc = "";
+  });
+};
 
 async function init(): Promise<any> {
-  const csvFiles = await getCSV()
-  const csv = await Promise.all(csvFiles.map(async file => await readCSV(file)))
-  show(csv)
+  const csvFiles = await getCSV();
+  const csv = await Promise.all(
+    csvFiles.map(async (file) => await readCSV(file))
+  );
+  show(csv);
 }
-init()
+init();
